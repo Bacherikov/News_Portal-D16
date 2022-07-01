@@ -1,0 +1,94 @@
+<!--  наследуемся от шаблона default.html, который мы создавали ещё во времена flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %} <!-- не забываем заранее загружать наши фильтры! -->
+
+
+<!-- Название у нас будет News -->
+{% block title %}
+News search
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим все новости -->
+{% block content %}
+<h3>Поиск статей и новостей</h3>
+<hr>
+<form method="GET">
+    {{ filter.form }} <!-- Форму от фильтров за нас сделает Django. А вот кнопку, увы придётся делать самому -->
+    <input type="submit" value="Найти">
+</form>
+<hr>
+<h2 style="text-align: left;">Результат поиска:{{ filter.qs|length }} </h2>
+<!-- Перед таблицей добавим форму для поиска -->
+    {% if filter.qs %} <!-- Выводим новости только, если они есть с помощью тега if -->
+       <hr>
+        <table>
+            <tr>
+                <td>
+                    Заголовок
+                </td>
+                <td>
+                    Автор
+                </td>
+                <td>
+                    Дата публикации
+                </td>
+                <td>
+                    Текст
+                </td>
+            </tr>
+    {% for post in filter.qs %} <!-- поменяем posts на filter.qs, т. к. теперь мы забираем уже отобранную по каким-то параметрам информацию -->
+            <!-- Для каждой новости будет генерироваться новая строчка, т. е. новый html-код.
+    При этом сам цикл работает точно так же, как и в Python. post — переменная цикла,
+    т. е. наша новость, взятая из общего списка -->
+            <tr>
+                <td>
+                     {{ post.heading|truncatewords:2|censor:'***'}}
+                     <!-- не забываем, что переменные в шаблоне ничем не отличаются
+                     от переменных в Python. Здесь также можно получать доступ к полям класса. Например,
+                     здесь мы выводим заголовок, в следующем столбце дату описания и т. д.  -->
+                </td>
+                <td>
+                    {{ post.author}}
+                </td>
+                <td>
+                    {{ post.create_time|date:'d M Y'}}
+                </td>
+                <td>
+                    {{ post.text_post|truncatechars:50|censor:'***' }}
+                </td>
+            </tr>
+    {% endfor %}
+        </table>
+
+
+<!-- D7.2 начало блока пагинации-->
+
+{% if is_paginated%}<!-- Проверяем, что поддерживается постраничный вывод -->
+
+<!-- Если доступна предыдущая страница, то даём ссылку на неё и самую первую страницу -->
+    {% if page_obj.has_previous %}
+    <a href="?page=1">First</a>
+    <a href="?page={{page_obj.previous_page_number}}"><<<</a>
+    {% endif %}
+ <!-- Показываем только текущую страницу и ближайшие к ней, чтобы список не тянулся и не захламлял страницу -->
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <a>{{ num }}</a>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    <!-- Если есть следующая страница, то даём ссылку на неё и на самую последнюю страницу -->
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">>>></a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+    {% endif %}
+
+{% endif %}
+<!-- D7.2 конец блока пагинации-->
+    {% else %}
+        <h2> Новостей нет!! </h2> <!-- Если новостей нет, то говорим, что "Новостей нет!" ;) -->
+    {% endif %}
+
+{% endblock content %}

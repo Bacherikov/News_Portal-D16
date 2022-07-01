@@ -1,0 +1,33 @@
+<!--  наследуемся от шаблона default.html, который мы создавали ещё во времена flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+
+{% block title %}
+news
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим сам пост, ID которого было передано в адрес -->
+{% block content %}
+    <h1>{{post.heading|truncatewords:2|censor:'***' }}</h1>
+    <p>{{  post.text_post|censor:'***' }}</p>
+    <p>Автор: <b>{{ post.author.user.username }}</b></p>
+
+
+        {% if request.user.is_authenticated %}
+        <p>
+            Вы можете подписаться на новости категории:
+            {% for category in post.categories.all %}
+                {% if not category in user_category %}
+                    <a href="{% url 'subscription' %}?category_id={{ category.id }}"><br>{{ category.name }}</a>
+                {% else %}
+                    <br>{{ category.name }}
+                {% endif %}
+            {% endfor %}
+            <h6>Ваши текущие подписки:</h6>
+            {% for category in user_category %}
+                <br>{{ category.name }}
+            {% endfor %}
+        </p>
+    {% endif %}
+{% endblock content %}

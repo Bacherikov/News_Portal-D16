@@ -1,0 +1,17 @@
+<!--  наследуемся от шаблона default.html, который мы создавали ещё во времена flatpages -->
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %} <!-- не забываем заранее загружать наши фильтры! -->
+
+{% block title %} News create {% endblock title %}
+
+{% block content %}
+<h3>Информация о посте</h3>
+<form method="POST">
+    {% csrf_token %}
+    {{ form }} <!-- Теперь нам нужна только готовая форма и кнопка -->
+
+    <hr>
+    <input type="submit" value="Сохранить">
+</form>
+{% endblock content %}
